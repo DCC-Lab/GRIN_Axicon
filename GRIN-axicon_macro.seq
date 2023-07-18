@@ -1,0 +1,278 @@
+!******************************************************************************************
+! ARG0 "Macro to create a custom GRIN-axicon lens index profile. This macro only works "
+! ARG0 "with GRIN-axicon designed index profile given by n(r)=n1*sech(alpha(r-d/4))."
+!
+! ARG1 NAME     "Glass name:"
+! ARG1 TYPE     LITERAL
+! ARG1 DEFAULT  'grin'
+! ARG1 HELP     "Enter the desired the private catalog glass name."
+!
+! ARG2 NAME     "Min index: n0"
+! ARG2 TYPE     NUM
+! ARG2 DEFAULT  -1
+! ARG2 HELP     "Enter the desired refraction index at r = 0 (must be > 1)."
+!
+! ARG3 NAME     "Max index: n1"
+! ARG3 TYPE     NUM
+! ARG3 DEFAULT  -1
+! ARG3 HELP     "Enter the desired maximum refraction index (must be > 1)"
+!
+! ARG4 NAME     "Grin diameter: d"
+! ARG4 TYPE     NUM
+! ARG4 DEFAULT  -1
+! ARG4 HELP     "Specify the GRIN diameter."
+!
+! ARG5 NAME     "Grin convergence: alpha"
+! ARG5 TYPE     NUM
+! ARG5 DEFAULT  -1
+! ARG5 HELP     "Specify the GRIN alpha parameter."
+!
+! ARG6 NAME     "Mode:"
+! ARG6 TYPE     STR
+! ARG6 CHOICE   "Experimental with index file" "Theoretical"
+! ARG6 DEFAULT  "Theoretical"
+! ARG6 HELP     "Choose the desired index profile mode."
+!
+! ARG7 NAME     "File name"
+! ARG7 TYPE     LITERAL
+! ARG7 DEFAULT  'indexFile.dat' 
+! ARG7 HELP     "Specify the file name of the index profile data."
+!
+! ARG8 NAME     "Surface #"
+! ARG8 TYPE     NUM
+! ARG8 DEFAULT  1
+! ARG8 HELP     "Specify the desired surface to apply the GRIN to."
+!
+!******************************************************************************************
+
+! Drop previous function definition and define new one.
+dro fct @USERGRN
+dro fct @profil
+buf del b5
+
+!modified version of the orignial macro usergn
+
+!ensure that DIM is set to mm
+DIM mm
+
+!Inputs:
+^glass_name == #1
+
+^n1_input == #3
+
+^grinfront_surf == #8
+^grinrear_surf == ^grinfront_surf + 1
+
+^mode == #6
+
+^filename == #7
+
+if ^mode = "Experimental with index file"
+	^cas == 2
+	buf imp b5 ^filename !file name of refractive index data file
+	
+	^n0_input == (buf.num b5 i5 j3) + ^n1_input 
+
+	if #4 = -1
+ 		^d == (buf.num b5 i3 j3)
+	else
+		^d == #4
+	end if
+else
+	^cas == 1
+	^d == #4
+	^n0_input == #2
+end if
+
+if #5 = -1
+	^alpha == logf(^n1_input /^n0_input  + sqrtf((^n1_input /^n0_input)**2 - 1))/(^d/4)
+
+else
+	^alpha == #5
+end if
+
+^pi == 3.141592654
+
+^grinLength == ^pi/(2*^alpha) 
+
+
+
+
+!-------------------------GRINAX 1ere fois-------------------------
+
+!copier du CODE V Macro-PLUS Reference Manual : Chapter 5 CODE V Supplied Macros : User-Defined Features Macros
+!L'ouverture numerique doit être 4X le parametre b (dans usergrn) et le systéme en mm
+
+! Drop previous function definition and define new one.
+dro fct @usergrn
+dro fct @profil
+in cv_macro:usergrn
+
+! Define private glass with user gradient data
+PRV
+PWL 600 500 400! wavelengths
+^glass_name ^n1_input ^n1_input ^n1_input  ! base index
+^a == 2/^d !facteur  de dimention
+UDG 
+UDG 0.02/^a
+UDG C1 0.4 		! parameter a
+UDG C2 0 		! parameter r
+UDG C3 ^cas 	! case parameter 
+UDG C4 ^d 		! diameter parameter
+UDG C5 ^alpha 	! alpha parameter
+UDG C6 ^n1_input 
+end
+
+
+! Calculate grid of index values, store in buffer for plotting
+ver n
+^z == 0
+buf del b1..3
+buf mov b1 i1 j1
+buf mov b2 i1 j1
+for ^x -1/^a 1/^a .025/^a
+for ^y -1/^a 1/^a .025/^a
+if ^x**2 + ^y**2 < 1
+^n1 == index(1,1,1,1,^x,^y,^z)
+^n2 == index(1,1,1,1,^x,^y,^z+1)
+else
+^n1 == -99999
+^n2 == -99999
+end if
+buf put b1 ic jc ^n1
+buf mov b1 ic jc+1
+buf put b2 ic jc ^n2
+buf mov b2 ic jc+1
+end for
+buf mov b1 ic+1 j1
+buf mov b2 ic+1 j1
+end for
+
+
+! Calculate index values as a function of radial position
+for ^y 0 1/^a 0.00025/^a
+^x == 0
+^n1 == index(1,1,1,1,^x,^y,^z)
+^n2 == index(1,1,1,1,^x,^y,^z+1)
+buf put b3 il+1 ^y ^n1 ^y ^n2
+end for
+
+ver y ! Turn back on command echo
+
+!-----------------------Création surface GRIN----------------------
+
+! Apply private glass and user grin to the desired surface
+EPD ^d !set entrance pupil to ^d
+
+s^grinfront_surf 0 ^grinLength ^glass_name
+CIR s^grinfront_surf ^d/2
+SLB S^grinfront_surf 'Grin front'
+
+s^grinrear_surf 0 ^grinLength 
+CIR s^grinrear_surf ^d/2
+SLB S^grinrear_surf  'Grin rear'
+
+!-------------------------GRINAX 2e fois---------------------------
+
+!copier du CODE V Macro-PLUS Reference Manual : Chapter 5 CODE V Supplied Macros : User-Defined Features Macros
+!L'ouverture numerique doit être 4X le parametre b (dans usergrn) et le systéme en mm
+
+! Drop previous function definition and define new one.
+dro fct @usergrn
+dro fct @profil
+in cv_macro:usergrn
+
+! Define private glass with user gradient data
+PRV
+PWL 600 500 400! wavelengths
+^glass_name ^n1_input ^n1_input ^n1_input ! base index
+^a == 2/^d !facteur  de dimention
+UDG 
+UDG 0.02/^a
+UDG C1 0.4 		! parameter a
+UDG C2 0 		! parameter r
+UDG C3 ^cas 	! case parameter 
+UDG C4 ^d 		! diameter parameter
+UDG C5 ^alpha 	! alpha parameter
+UDG C6 ^n1_input 
+end
+
+! Calculate grid of index values, store in buffer for plotting
+ver n
+^z == 0
+buf del b1..3
+buf mov b1 i1 j1
+buf mov b2 i1 j1
+for ^x -1/^a 1/^a .025/^a
+for ^y -1/^a 1/^a .025/^a
+if ^x**2 + ^y**2 < 1
+^n1 == index(1,1,1,1,^x,^y,^z)
+^n2 == index(1,1,1,1,^x,^y,^z+1)
+else
+^n1 == -99999
+^n2 == -99999
+end if
+buf put b1 ic jc ^n1
+buf mov b1 ic jc+1
+buf put b2 ic jc ^n2
+buf mov b2 ic jc+1
+end for
+buf mov b1 ic+1 j1
+buf mov b2 ic+1 j1
+end for
+
+
+! Calculate index values as a function of radial position
+for ^y 0 1/^a 0.00025/^a
+^x == 0
+^n1 == index(1,1,1,1,^x,^y,^z)
+^n2 == index(1,1,1,1,^x,^y,^z+1)
+buf put b3 il+1 ^y ^n1 ^y ^n2
+end for
+
+ver y ! Turn back on command echo
+
+^etat == 1 !pour tracer
+if ^etat = 1
+! Plot grid of index values at z=0
+ugr
+tit "Index map, z=0"
+uni 'mm' "mm"
+lti "Index"
+gri .025/^a
+lev num 99
+nda -99999
+sfp b1 ia ja dis
+go
+end if
+
+^etat == 1 !pour tracer
+if ^etat = 1
+! Plot grid of index values at z=1
+ugr
+tit "Index map, z=1"
+uni 'mm' "mm"
+lti "Index"
+gri .0025
+lev num 99
+nda -99999
+sfp b2 ia ja dis
+go
+end if
+
+^etat == 1 !pour tracer
+if ^etat = 1
+! Plot curve of index values vs. radial position
+ugr
+tit "Profil indice refraction radial"
+xla "Distance radiale (mm)"
+yla "Indice de refraction"
+dtb b3 ia j1..2 'z=0'
+dtb b3 ia j3..4 'z=1'
+go
+end if
+
+if ^cas = 1
+	in cv_macro:quickview "YZ Profile" "Automatic" 0 "Standard" "Default" "Fans" "" "Default" "Default" ;GO
+end if
+
