@@ -136,47 +136,6 @@ def r_GRIN_lens(r1_, theta1_, z1_, z_array):
 def r_lens_air(r2_, theta2_, z1_, z_array):
     return np.reshape([np.tan(theta2_)*(z_array - z1_)+r2_], [np.size(z_array)])
 
-
-# ===========================================================
-#                       GUI setup
-# ===========================================================
-
-class DynamicPlotApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("GRIN-Axicon configurator")
-
-        self.font = font.Font(family='Helvetica', size=14)
-        self.subtitlefont = font.Font(family='Helvetica', size=18, weight='normal', underline=True)
-        self.titlefont = font.Font(family='Helvetica', size=20, weight='bold')
-        
-        self.alpha_ax_val = 2.5
-        self.n_ax_val = 1.5168
-        self.beam_diam_val = 5.854128
-        self.exitangle_ax_val = ax_ExitAngle(self.alpha_ax_val, self.n_ax_val)
-        self.ax_k_constant_val = ax_k_constant(self.alpha_ax_val)      
-        
-        self.min_n0 = 1
-        self.max_n0 = 2
-        self.init_cursor_n0 = (self.max_n0+self.min_n0)/2
-        
-        self.min_Dn = 0.001
-        self.max_Dn = 0.05
-        self.init_cursor_Dn = (self.max_Dn+self.min_Dn)/2
-        
-        self.init_val_n1 = self.init_cursor_n0 + self.init_cursor_Dn
-        
-        self.min_z = 0
-        self.max_z = T(alpha(self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4))
-        self.init_cursor_z = (self.max_z + self.min_z)/2 
-        
-        self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
-        self.grin_lens_distance_val = GRIN_focRing(1E-07, self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4, self.init_cursor_z) + self.f_gax_val
-        
-        self.grin_ax_exit_pupil_val = D2fit(1E-07, self.init_val_n1, self.init_cursor_Dn, self.beam_diam_val/4, self.init_cursor_z, self.f_gax_val)
-        
-        self.create_widgets()
-
 def grin_ax_viewer(n1_, n0_, a0_, z_, f_, back_lens_length, nb_r0, nb_points):
     
     T_grin = T(alpha(n1_, n0_, a0_))
@@ -258,6 +217,46 @@ def grin_ax_viewer(n1_, n0_, a0_, z_, f_, back_lens_length, nb_r0, nb_points):
     plt.ylabel('Radial distance $r$ [mm]')
     plt.show()
 
+# ===========================================================
+#                       GUI setup
+# ===========================================================
+
+class DynamicPlotApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("GRIN-Axicon configurator")
+
+        self.font = font.Font(family='Helvetica', size=14)
+        self.subtitlefont = font.Font(family='Helvetica', size=18, weight='normal', underline=True)
+        self.titlefont = font.Font(family='Helvetica', size=20, weight='bold')
+        
+        self.alpha_ax_val = 2.5
+        self.n_ax_val = 1.5168
+        self.beam_diam_val = 5.854128
+        self.exitangle_ax_val = ax_ExitAngle(self.alpha_ax_val, self.n_ax_val)
+        self.ax_k_constant_val = ax_k_constant(self.alpha_ax_val)      
+        
+        self.min_n0 = 1
+        self.max_n0 = 2
+        self.init_cursor_n0 = (self.max_n0+self.min_n0)/2
+        
+        self.min_Dn = 0.001
+        self.max_Dn = 0.05
+        self.init_cursor_Dn = (self.max_Dn+self.min_Dn)/2
+        
+        self.init_val_n1 = self.init_cursor_n0 + self.init_cursor_Dn
+        
+        self.min_z = 0
+        self.max_z = T(alpha(self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4))
+        self.init_cursor_z = (self.max_z + self.min_z)/2 
+        
+        self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
+        self.grin_lens_distance_val = GRIN_focRing(1E-07, self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4, self.init_cursor_z) + self.f_gax_val
+        
+        self.grin_ax_exit_pupil_val = D2fit(1E-07, self.init_val_n1, self.init_cursor_Dn, self.beam_diam_val/4, self.init_cursor_z, self.f_gax_val)
+        
+        self.create_widgets()
+
     def create_widgets(self):
         self.fig, self.ax = plt.subplots(figsize=(10, 6))
 
@@ -288,6 +287,14 @@ def grin_ax_viewer(n1_, n0_, a0_, z_, f_, back_lens_length, nb_r0, nb_points):
         # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
         self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=6, padx=10, pady=10)
+        
+        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
+        # self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
+        # self.canvas.get_tk_widget().grid(row=0, column=1, columnspan=6, padx=10, pady=10)
+        
+        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
+        # self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_param_frame)
+        # self.canvas.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=10)
 
         # Create tkinter widgets for sliders in GRIN-axicon section
         self.n0_label = ttk.Label(self.grin_ax_config_panel, text="n0:", font=self.font)
