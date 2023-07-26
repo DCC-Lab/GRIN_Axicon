@@ -55,23 +55,6 @@ def r1(r0_, n1_, n0_, a0_, z_):
 def traceDeRayons(r0_, n1_, n0_, a0_, z_, nb_points):
     alpha_ = alpha(n1_, n0_, a0_)
     return 1/alpha_*np.arcsinh(np.sinh(alpha_*(r0_ - a0_))*np.cos(alpha_*z_))+a0_
-    # if nb_points != 1:
-    #     z = np.linspace(0, z_, nb_points)
-    #     plt.figure()
-        
-    #     for i in r0_:
-    #         r = r1(i, n1_, n0_, a0_, z)
-
-    #         plt.plot(z, r, color=(0.18,0.45,0.71))
-    #         plt.plot(z, -r, color=(0.18,0.45,0.71))
-
-    #         plt.xlabel('Axial position $z$ [mm]')
-    #         plt.ylabel('Radial distance $r$ [mm]')
-
-    #     plt.show()
-    # else:
-    
-    # return
 
 def nr(r0_, n1_, n0_, a0_, z_):
     # refractive index with respect to the radial position (index profile)
@@ -135,88 +118,7 @@ def r_GRIN_lens(r1_, theta1_, z1_, z_array):
 
 def r_lens_air(r2_, theta2_, z1_, z_array):
     return np.reshape([np.tan(theta2_)*(z_array - z1_)+r2_], [np.size(z_array)])
-
-def grin_ax_viewer(n1_, n0_, a0_, z_, f_, back_lens_length, nb_r0, nb_points):
-    
-    T_grin = T(alpha(n1_, n0_, a0_))
-    L_grin_lens = GRIN_focRing(1E-07, n1_, n0_, a0_, z_)
-    
-    r0_ = np.linspace(2*a0_, -2*a0_, nb_r0)
-    l1 = z_
-    l2 = L_grin_lens + f_ + l1
-    l3 = back_lens_length + l2
-    z1 = np.linspace(0, l1, int(nb_points/2))
-    z2 = np.linspace(l1, l2, int(nb_points/4))
-    z3 = np.linspace(l2, l3, int(nb_points/4))
-    full_z = []
-    full_z.extend(z1)
-    full_z.extend(z2)
-    full_z.extend(z3)
-    
-    
-
-    
-    plt.figure()
-    ray_color = (0.18, 0.45, 0.71)
-    
-    print(r0_)
-    
-    for i in r0_:
-        print('for loop')
-        if i > 0:
-            print('if')
-            beam_list = []
-            
-            r_z1 = r1(i, n1_, n0_, a0_, z1)
-            beam_list.extend(r_z1)
-            
-            r1_ = r1(i, n1_, n0_, a0_, z_)
-            theta1_ = theta1(i, n1_, n0_, a0_, z_)
-            
-            r_z2 = r_GRIN_lens(r1_, theta1_, z_, z2)
-            beam_list.extend(r_z2)
-            
-            r2_ = r2(i, n1_, n0_, a0_, z_, f_)
-            theta2_ = (np.pi/180)*ExitAngle(a0_, f_)
-            print(r2_)
-            
-            r_z3 = r_lens_air(r2_, theta2_, (z_ + L_grin_lens + f_), z3)
-            beam_list.extend(r_z3)
-            
-            print(len(beam_list))
-            plt.plot(full_z, beam_list, color=ray_color)
-            plt.plot(full_z, [ -x for x in beam_list], color=ray_color)
-        elif i == 0:
-            print('elif')
-            beam_list = []
-            
-            r_z1 = r1(i, n1_, n0_, a0_, z1)
-            beam_list.extend(r_z1)
-            
-            r1_ = r1(i, n1_, n0_, a0_, z_)
-            theta1_ = theta1(i, n1_, n0_, a0_, z_)
-            
-            r_z2 = r_GRIN_lens(r1_, theta1_, z_, z2)
-            beam_list.extend(r_z2)
-            
-            r2_ = r2(i, n1_, n0_, a0_, T_grin, f_)
-            theta2_ = (np.pi/180)*ExitAngle(a0_, f_)
-            print(r2_)
-            
-            r_z3 = r_lens_air(r2_, theta2_, (T_grin + L_grin_lens), z3)
-            beam_list.extend(r_z3)
-            
-            print(len(beam_list))
-            plt.plot(full_z, beam_list, color=ray_color)
-        else:
-            print('else')
-            break
-    
-    
-    plt.xlabel('Axial position $z$ [mm]')
-    plt.ylabel('Radial distance $r$ [mm]')
-    plt.show()
-
+   
 # ===========================================================
 #                       GUI setup
 # ===========================================================
@@ -258,7 +160,9 @@ class DynamicPlotApp:
         self.create_widgets()
 
     def create_widgets(self):
-        self.fig, self.ax = plt.subplots(figsize=(10, 6))
+        self.fig, self.ax = plt.subplots(figsize=(6, 4))
+        self.fig1, self.ax1 = plt.subplots(figsize=(6, 4))
+        self.fig2, self.ax2 = plt.subplots(figsize=(8, 2))
 
         # Create a frame for the GRIN-axicon section
         self.grin_axicon_frame = tk.LabelFrame(self.root, text="GRIN-Axicon", font=self.titlefont)
@@ -286,15 +190,15 @@ class DynamicPlotApp:
         
         # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
-        self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=6, padx=10, pady=10)
+        self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=3, padx=10, pady=20)
         
-        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        # self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
-        # self.canvas.get_tk_widget().grid(row=0, column=1, columnspan=6, padx=10, pady=10)
+        # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
+        self.canvas1 = FigureCanvasTkAgg(self.fig1, master=self.grin_ax_config_panel)
+        self.canvas1.get_tk_widget().grid(row=0, column=3, columnspan=3, padx=10, pady=20)
         
-        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        # self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_param_frame)
-        # self.canvas.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=10)
+        # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
+        self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.grin_ax_param_frame)
+        self.canvas2.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=20)
 
         # Create tkinter widgets for sliders in GRIN-axicon section
         self.n0_label = ttk.Label(self.grin_ax_config_panel, text="n0:", font=self.font)
@@ -444,8 +348,109 @@ class DynamicPlotApp:
         self.grin_lens_distance['text'] = f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}"
         
         self.grin_ax_entrance_pupil['text'] = f"Input beam diameter [mm]: {self.beam_diam_val:.5f}"
-        self.grin_ax_exit_pupil['text'] = f"Output beam diameter [mm]: {D2fit(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val):.5f}"
+        self.grin_ax_exit_pupil_val = D2fit(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val)
+        self.grin_ax_exit_pupil['text'] = f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.5f}"
         
+    def index_profile_viewer(self, event, n1_, n0_, a0_):
+        
+        self.ax1.clear()
+        ray_color = (0.18, 0.45, 0.71)
+        alpha_ = alpha(n1_, n0_, a0_)
+        
+        r = np.linspace(-2*a0_, 2*a0_, 100)
+        
+        nr_ = []
+        for i in r:
+            if i >= 0:
+                nr_.append(n1_/np.cosh(alpha_*(i - a0_)))
+            else:
+                nr_.append(n1_/np.cosh(alpha_*(i + a0_)))
+
+        self.ax1.plot(r, nr_, color=ray_color)
+        self.ax1.set_ylabel('Refractive index $n$ [-]')
+        self.ax1.set_xlabel('Radial position $r$ [mm]')
+        self.ax1.set_title('GRIN index profile')
+        plt.tight_layout()
+        self.canvas1.draw()
+        
+    
+    def grin_ax_viewer(self, event, n1_, n0_, a0_, z_, f_, nb_r0, nb_points):
+    
+        T_grin = T(alpha(n1_, n0_, a0_))
+        L_grin_lens = GRIN_focRing(1E-07, n1_, n0_, a0_, z_)
+        exit_diam = self.grin_ax_exit_pupil_val
+        
+        r0_ = np.linspace(2*a0_, -2*a0_, nb_r0)
+        l1 = z_
+        l2 = L_grin_lens + f_ + l1
+        l3 = exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)) + l2
+        z1 = np.linspace(0, l1, int(nb_points/2))
+        z2 = np.linspace(l1, l2, int(nb_points/4))
+        z3 = np.linspace(l2, l3, int(nb_points/4))
+        full_z = []
+        full_z.extend(z1)
+        full_z.extend(z2)
+        full_z.extend(z3)
+        
+        
+        self.ax2.clear()
+        ray_color = (0.18, 0.45, 0.71)
+        
+        for i in r0_:
+            if i > 0:
+                beam_list = []
+                
+                r_z1 = r1(i, n1_, n0_, a0_, z1)
+                beam_list.extend(r_z1)
+                
+                r1_ = r1(i, n1_, n0_, a0_, z_)
+                theta1_ = theta1(i, n1_, n0_, a0_, z_)
+                
+                r_z2 = r_GRIN_lens(r1_, theta1_, z_, z2)
+                beam_list.extend(r_z2)
+                
+                r2_ = r2(i, n1_, n0_, a0_, z_, f_)
+                theta2_ = (np.pi/180)*ExitAngle(a0_, f_)
+                
+                r_z3 = r_lens_air(r2_, theta2_, (z_ + L_grin_lens + f_), z3)
+                beam_list.extend(r_z3)
+            
+                self.ax2.plot(full_z, beam_list, color=ray_color)
+                self.ax2.plot(full_z, [ -x for x in beam_list], color=ray_color)
+            elif i == 0:
+                beam_list = []
+                
+                r_z1 = r1(i, n1_, n0_, a0_, z1)
+                beam_list.extend(r_z1)
+                
+                r1_ = r1(i, n1_, n0_, a0_, z_)
+                theta1_ = theta1(i, n1_, n0_, a0_, z_)
+                
+                r_z2 = r_GRIN_lens(r1_, theta1_, z_, z2)
+                beam_list.extend(r_z2)
+                
+                r2_ = r2(i, n1_, n0_, a0_, z_, f_)
+                theta2_ = (np.pi/180)*ExitAngle(a0_, f_)
+                
+                r_z3 = r_lens_air(r2_, theta2_, (z_ + L_grin_lens + f_), z3)
+                beam_list.extend(r_z3)
+                
+                self.ax2.plot(full_z, beam_list, color=ray_color)
+                self.ax2.plot(full_z, [ -x for x in beam_list], color=ray_color)
+            else:
+                break
+        self.ax2.set_xlabel('Axial position [mm]')
+        self.ax2.set_ylabel('Radial position [mm]')
+        self.ax2.set_title('GRIN-axicon setup scheme')
+        self.ax2.vlines(x = [0, z_, l2], ymin = [-2*a0_, -2*a0_, -exit_diam/2], ymax = [2*a0_, 2*a0_, exit_diam/2],
+           colors = 'black',
+           label = 'vline_multiple - full height',
+           linestyles='solid')
+        self.ax2.hlines([-2*a0_, 2*a0_], 0, z_,
+           colors = 'black',
+           label = 'vline_multiple - full height',
+           linestyles='solid')
+        self.canvas2.draw()
     
     # Function to update the plot based on the slider values
     def update_plot(self, event):        
@@ -453,19 +458,21 @@ class DynamicPlotApp:
         Dn = self.Dn_slider.get()
         n1 = n0 + Dn
         D = self.beam_diam_val
+        a0 = D/4
+        f = self.f_gax_val
                 
         # Update the z slider range    
         self.update_z_slider_range(event)    
         
         # Get cursor position
         z_cursor = self.z_slider.get() 
-        y_cursor = D2fit(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val)
+        y_cursor = D2fit(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
         
         # Update the grin axicon setup values
         self.update_grin_ax_param(event, n1, n0, Dn, D, z_cursor)   
         
-        z = np.linspace(0, self.max_z, 1000)
-        y = D2fit(1E-07, n1, Dn, D/4, z, self.f_gax_val)
+        z = np.linspace(0, self.max_z, 50)
+        y = D2fit(1E-07, n1, Dn, a0, z, self.f_gax_val)
         
         self.ax.clear()
         self.ax.plot(z, y)
@@ -482,13 +489,16 @@ class DynamicPlotApp:
         
         self.ax.set_xlabel('GRIN length [mm]')
         self.ax.set_ylabel('Exit beam diameter [mm]')
-        self.ax.set_title('GRIN adjusting curve')
+        self.ax.set_title('GRIN exit beam diameter adjusting curve')
         self.canvas.draw()
 
         # Update slider value labels
         self.n0_label.config(text=f"n0: {n0:.5f}")
         self.Dn_label.config(text=f"Dn: {Dn:.5f}")
         self.z_label.config(text=f"z: {z_cursor:.5f}")
+        
+        self.grin_ax_viewer(event, n1, n0, a0, z_cursor, f, 5, 50)
+        self.index_profile_viewer(event, n1, n0, a0)
 
     # Function to update the slider range based on input box values
     def update_slider_range(self, event):           
