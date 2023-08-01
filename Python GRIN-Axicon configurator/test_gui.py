@@ -1,8 +1,12 @@
 import tkinter as tk
+from tkinter import N, S, E, W, NE, NW, SE, SW
+
 from tkinter import ttk
 import tkinter.font as font
 import unittest
 import re 
+
+gRoot = None
 
 class TestTk(unittest.TestCase):
     def testInit(self):
@@ -40,11 +44,67 @@ class TestTk(unittest.TestCase):
 
         # Set this to the resolution of your screen: I have no way of knowing at this point
         # and certainly not across plateforms
-        
+
         actual_width = 1792
         actual_height = 1120
         self.assertEqual(screen_width , actual_width)
         self.assertEqual(screen_height , actual_height)
+
+    def testDPI(self):
+        root = tk.Tk()
+        dpi = root.winfo_fpixels('1i') # Found here: https://stackoverflow.com/questions/42961810/detect-dpi-scaling-factor-in-python-tkinter-application
+        screen_width_in_inches = root.winfo_screenwidth() / dpi
+        screen_height_in_inches = root.winfo_screenheight() / dpi
+
+        self.assertTrue(screen_width_in_inches > 10)
+        self.assertTrue(screen_width_in_inches < 30)
+        self.assertTrue(screen_height_in_inches > 10)
+        self.assertTrue(screen_height_in_inches < 30)
+
+
+    def testFirstButton(self):
+        root = tk.Tk()
+        ttk.Button(root, text="Hello World").grid()
+
+    @unittest.skip("import has been modified at the top")
+    def testNorthSouthEastWestUndefined(self):
+        root = tk.Tk()
+        mainframe = ttk.Frame(root, padding="3 3 12 12")
+
+        with self.assertRaises(NameError):
+            mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+
+    def testNorthSouthEastWestImported(self):
+        root = tk.Tk()
+        mainframe = ttk.Frame(root, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+
+    def testNorthSouthEastWestShortcuts(self):
+        root = tk.Tk()
+        # There are shortcuts NW, SE, etc... We can give them together or separately
+        mainframe = ttk.Frame(root, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        mainframe.grid(column=0, row=0, sticky=(NW, SE))
+        mainframe.grid(column=0, row=0, sticky=(N,W, SE))
+
+    @unittest.expectedFailure
+    def testStickiness(self):
+        # I don't understand why this fails often
+        root = tk.Tk()
+        root.title = "Test resize"
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
+        root.geometry("750x250+400+300")
+        mainframe = ttk.Frame(root, padding="0 0 0 0")
+        mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+
+        geometry = root.geometry()
+        match = re.search(r"(\d+)x(\d+)\D(\d+)\D(\d+)", geometry)
+        if match is not None:
+            groups = match.groups()
+            self.assertEqual(int(groups[0]), mainframe.winfo_width())
+            self.assertEqual(int(groups[1]), mainframe.winfo_height())
+
 
 if __name__ == '__main__':
     unittest.main()
