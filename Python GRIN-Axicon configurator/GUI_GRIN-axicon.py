@@ -317,10 +317,11 @@ class DynamicPlotApp:
         
 
 
-        # Bind the update_plot function to the "<Motion>" event of the sliders in Axicon section
-        self.n0_slider.bind("<Motion>", self.update_plot)
-        self.Dn_slider.bind("<Motion>", self.update_plot)
-        self.z_slider.bind("<Motion>", self.update_plot)
+        # Bind the update_plot function to the "<B1-Motion>" event of the sliders in Axicon section
+        # which is when Button1 is pressed and mouse is moved.  <Motion> whenever mouse move, with or without button
+        self.n0_slider.bind("<B1-Motion>", self.update_plot)
+        self.Dn_slider.bind("<B1-Motion>", self.update_plot)
+        self.z_slider.bind("<B1-Motion>", self.update_plot)
         
         self.alpha_ax.bind('<Return>', self.update_ax_param)
         self.n_ax.bind('<Return>', self.update_ax_param)
