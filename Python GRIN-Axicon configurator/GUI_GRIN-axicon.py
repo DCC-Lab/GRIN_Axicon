@@ -118,6 +118,12 @@ def r_GRIN_lens(r1_, theta1_, z1_, z_array):
 
 def r_lens_air(r2_, theta2_, z1_, z_array):
     return np.reshape([np.tan(theta2_)*(z_array - z1_)+r2_], [np.size(z_array)])
+
+# def r_ax_air(r1_, alpha, z_array):
+    
+    
+    
+#     return
    
 # ===========================================================
 #                       GUI setup
@@ -357,7 +363,7 @@ class DynamicPlotApp:
         ray_color = (0.18, 0.45, 0.71)
         alpha_ = alpha(n1_, n0_, a0_)
         
-        r = np.linspace(-2*a0_, 2*a0_, 100)
+        r = np.linspace(-2*a0_, 2*a0_, 50)
         
         nr_ = []
         for i in r:
@@ -450,6 +456,27 @@ class DynamicPlotApp:
            colors = 'black',
            label = 'vline_multiple - full height',
            linestyles='solid')
+        self.canvas2.draw()
+    
+    def ax_viewer(self, event, nb_points, nb_r0, D):
+        
+        exitangle = self.exitangle_ax_val
+        alpha_param = self.alpha_ax_val
+        
+        r0_ = np.linspace(D/2, -D/2, nb_r0)
+        z1 = np.linspace(0, exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)), 50)
+                         
+        exit_diam = self.grin_ax_exit_pupil_val
+        
+        
+        self.ax2.set_xlabel('Axial position [mm]')
+        self.ax2.set_ylabel('Radial position [mm]')
+        self.ax2.set_title('GRIN-axicon setup scheme')
+        self.ax2.vlines(x = 0, ymin = -D/2, ymax = D/2,
+           colors = 'black',
+           label = 'vline_multiple - full height',
+           linestyles='solid')
+
         self.canvas2.draw()
     
     # Function to update the plot based on the slider values
