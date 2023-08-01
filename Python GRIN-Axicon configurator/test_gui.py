@@ -33,6 +33,18 @@ class TestTk(unittest.TestCase):
             self.assertTrue(int(groups[2]) == 0)
             self.assertTrue(int(groups[3]) == 0)
 
+    def testScreenGeometry(self):
+        root = tk.Tk()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+
+        # Set this to the resolution of your screen: I have no way of knowing at this point
+        # and certainly not across plateforms
+        
+        actual_width = 1792
+        actual_height = 1120
+        self.assertEqual(screen_width , actual_width)
+        self.assertEqual(screen_height , actual_height)
 
 if __name__ == '__main__':
     unittest.main()
