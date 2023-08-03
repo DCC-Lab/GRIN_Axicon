@@ -4,6 +4,7 @@ import tkinter.font as font
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib as mpl
 
 # ===========================================================
 #                   GRIN-Axicon functions
@@ -166,9 +167,19 @@ class DynamicPlotApp:
         self.create_widgets()
 
     def create_widgets(self):
-        self.fig, self.ax = plt.subplots(figsize=(6, 4))
-        self.fig1, self.ax1 = plt.subplots(figsize=(6, 4))
-        self.fig2, self.ax2 = plt.subplots(figsize=(8, 2))
+        dpi = root.winfo_fpixels('1i') # Found here: https://stackoverflow.com/questions/42961810/detect-dpi-scaling-factor-in-python-tkinter-application
+        screen_width_in_inches = root.winfo_screenwidth() / dpi
+        screen_height_in_inches = root.winfo_screenheight() / dpi
+
+        mpl.rcParams['axes.titlesize'] = 'x-small'
+        mpl.rcParams['axes.labelsize'] = 'x-small'
+        mpl.rcParams['xtick.labelsize'] = 'x-small'
+        mpl.rcParams['ytick.labelsize'] = 'x-small'
+
+        self.fig, self.ax = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15) )
+        self.fig1, self.ax1 = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15))
+        self.fig2, self.ax2 = plt.subplots(figsize=(screen_width_in_inches * 0.2, 0.5))
+
 
         # Create a frame for the GRIN-axicon section
         self.grin_axicon_frame = tk.LabelFrame(self.root, text="GRIN-Axicon", font=self.titlefont)
@@ -312,10 +323,11 @@ class DynamicPlotApp:
         
 
 
-        # Bind the update_plot function to the "<Motion>" event of the sliders in Axicon section
-        self.n0_slider.bind("<Motion>", self.update_plot)
-        self.Dn_slider.bind("<Motion>", self.update_plot)
-        self.z_slider.bind("<Motion>", self.update_plot)
+        # Bind the update_plot function to the "<B1-Motion>" event of the sliders in Axicon section
+        # which is when Button1 is pressed and mouse is moved.  <Motion> whenever mouse move, with or without button
+        self.n0_slider.bind("<B1-Motion>", self.update_plot)
+        self.Dn_slider.bind("<B1-Motion>", self.update_plot)
+        self.z_slider.bind("<B1-Motion>", self.update_plot)
         
         self.alpha_ax.bind('<Return>', self.update_ax_param)
         self.n_ax.bind('<Return>', self.update_ax_param)
@@ -514,9 +526,9 @@ class DynamicPlotApp:
            label = 'vline_multiple - full height',
            linestyles='dashed')
         
-        self.ax.set_xlabel('GRIN length [mm]')
-        self.ax.set_ylabel('Exit beam diameter [mm]')
-        self.ax.set_title('GRIN exit beam diameter adjusting curve')
+        self.ax.set_xlabel('GRIN length [mm]', fontsize="x-small")
+        self.ax.set_ylabel('Exit beam diameter [mm]', fontsize="x-small")
+        self.ax.set_title('GRIN exit beam diameter adjusting curve', fontsize="x-small")
         self.canvas.draw()
 
         # Update slider value labels
