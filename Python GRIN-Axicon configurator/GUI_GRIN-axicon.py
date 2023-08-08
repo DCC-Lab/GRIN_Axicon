@@ -55,10 +55,6 @@ def r1(r0_, n1_, n0_, a0_, z_):
     else:
         return (np.arcsinh(np.sinh(alpha_*(r0_-a0_))*np.cos(alpha_*z_)))/alpha_ + a0_
 
-def traceDeRayons(r0_, n1_, n0_, a0_, z_, nb_points):
-    alpha_ = alpha(n1_, n0_, a0_)
-    return 1/alpha_*np.arcsinh(np.sinh(alpha_*(r0_ - a0_))*np.cos(alpha_*z_))+a0_
-
 def nr(r0_, n1_, n0_, a0_, z_):
     # refractive index with respect to the radial position (index profile)
     
@@ -97,36 +93,40 @@ def ExitAngle(a0_, f_):
     return -(180/np.pi)*(a0_/f_)
 
 def f_ga(theta2_, a0_):                
-    # Focal distance needed for theta2_ exit angle and 4a0 entrance pupil
+    # Focal distance needed for theta2_ Exit angle (Beta) and 4a0 entrance pupil
     
     return -(180/np.pi)*(a0_/theta2_)
 
 def r2(r0_, n1_, n0_, a0_, z_, f_):
+    # radial position of a ray after the lens
+    
     return a0_+ f_*theta1(r0_, n1_, n0_, a0_, z_)
 
-def D2fit(r0_, n1_, Dn_, a0_, z_, f_): 
-    # Exit diameter function to fit
+def Exit_D(r0_, n1_, Dn_, a0_, z_, f_): 
+    # diameter of the exit beam
     
     n0_ = n1_ - Dn_
     return 2*a0_+ 2*f_*theta1(r0_, n1_, n0_, a0_, z_)
 
 def ax_ExitAngle(alpha, n):
+    # axicon Exit angle (Beta)
+    
     return -(np.arcsin(n*np.sin(alpha*(np.pi/180))) - (np.pi/180)*alpha)*(180/np.pi)
 
 def ax_k_constant(alpha_param):
+    # axicon k constant 
+    
     return -(1+(np.tan(np.pi/2 - alpha_param*(np.pi/180)))**2)
 
 def r_GRIN_lens(r1_, theta1_, z1_, z_array):
+    # create an array with the radial information of a ray through the GRIN
+    
     return np.reshape([np.tan(theta1_)*(z_array - z1_)+r1_], [np.size(z_array)])
 
 def r_lens_air(r2_, theta2_, z1_, z_array):
+     # create an array with the radial information of a ray after the lens
+    
     return np.reshape([np.tan(theta2_)*(z_array - z1_)+r2_], [np.size(z_array)])
-
-# def r_ax_air(r1_, alpha, z_array):
-    
-    
-    
-#     return
    
 # ===========================================================
 #                       GUI setup
@@ -137,9 +137,9 @@ class DynamicPlotApp:
         self.root = root
         self.root.title("GRIN-Axicon configurator")
 
-        self.font = font.Font(family='Helvetica', size=14)
-        self.subtitlefont = font.Font(family='Helvetica', size=18, weight='normal', underline=True)
-        self.titlefont = font.Font(family='Helvetica', size=20, weight='bold')
+        self.font = font.Font(family='Times New Roman', size=14)
+        self.subtitlefont = font.Font(family='Times New Roman', size=18, weight='normal', underline=True)
+        self.titlefont = font.Font(family='Times New Roman', size=20, weight='bold')
         
         self.alpha_ax_val = 2.5
         self.n_ax_val = 1.5168
@@ -164,7 +164,9 @@ class DynamicPlotApp:
         self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
         self.grin_lens_distance_val = GRIN_focRing(1E-07, self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4, self.init_cursor_z) + self.f_gax_val
         
-        self.grin_ax_exit_pupil_val = D2fit(1E-07, self.init_val_n1, self.init_cursor_Dn, self.beam_diam_val/4, self.init_cursor_z, self.f_gax_val)
+        self.grin_ax_exit_pupil_val = Exit_D(1E-07, self.init_val_n1, self.init_cursor_Dn, self.beam_diam_val/4, self.init_cursor_z, self.f_gax_val)
+        
+        self.depth_of_focus_val = self.grin_ax_exit_pupil_val/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val))
         
         self.create_widgets()
 
@@ -321,7 +323,7 @@ class DynamicPlotApp:
         
 
         # Create the axicon properties labels
-        self.exitangle_ax = ttk.Label(self.axicon_param_frame, text=f"Exit angle: {self.exitangle_ax_val:.5f}", font=self.font)
+        self.exitangle_ax = ttk.Label(self.axicon_param_frame, text=f"Exit angle (Beta): {self.exitangle_ax_val:.5f}", font=self.font)
         self.exitangle_ax.grid(row=0, column=0, padx=5, pady=5)
 
         self.beam_diam_ax = ttk.Label(self.axicon_param_frame, text=f"Beam diameter: {self.beam_diam_val:.5f}", font=self.font)
@@ -343,14 +345,17 @@ class DynamicPlotApp:
         self.lens_focal = ttk.Label(self.grin_ax_param_frame, text=f"Lens' focal distance [mm]: {self.f_gax_val:.5f}", font=self.font)
         self.lens_focal.grid(row=0, column=3, padx=5, pady=5)
         
-        self.grin_lens_distance = ttk.Label(self.grin_ax_param_frame, text=f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}", font=self.font)
-        self.grin_lens_distance.grid(row=1, column=2, padx=5, pady=5)
-        
         self.grin_ax_entrance_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Input beam diameter [mm]: {self.beam_diam_val:.5f}", font=self.font)
         self.grin_ax_entrance_pupil.grid(row=1, column=0, padx=5, pady=5)
         
         self.grin_ax_exit_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.5f}", font=self.font)
         self.grin_ax_exit_pupil.grid(row=1, column=1, padx=5, pady=5)
+        
+        self.grin_lens_distance = ttk.Label(self.grin_ax_param_frame, text=f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}", font=self.font)
+        self.grin_lens_distance.grid(row=1, column=2, padx=5, pady=5)
+        
+        self.depth_of_focus = ttk.Label(self.grin_ax_param_frame, text=f"Depth of focus (DOF) [mm]: {self.grin_ax_exit_pupil_val:.5f}", font=self.font)
+        self.depth_of_focus.grid(row=1, column=3, padx=5, pady=5)
         
         
         
@@ -383,7 +388,7 @@ class DynamicPlotApp:
         self.exitangle_ax_val = ax_ExitAngle(self.alpha_ax_val, self.n_ax_val)
         self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
         
-        self.exitangle_ax['text'] = f"Exit angle [{chr(176)}]: {self.exitangle_ax_val:.5f}"
+        self.exitangle_ax['text'] = f"Exit angle (Beta) [{chr(176)}]: {self.exitangle_ax_val:.5f}"
         self.beam_diam_ax['text'] = f"Beam diameter [mm]: {self.beam_diam_val:.5f}"
     
         self.ax_k_cnt['text'] = f"K constant: {ax_k_constant(self.alpha_ax_val):.5f}"
@@ -400,8 +405,11 @@ class DynamicPlotApp:
         self.grin_lens_distance['text'] = f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}"
         
         self.grin_ax_entrance_pupil['text'] = f"Input beam diameter [mm]: {self.beam_diam_val:.5f}"
-        self.grin_ax_exit_pupil_val = D2fit(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val)
+        self.grin_ax_exit_pupil_val = Exit_D(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val)
         self.grin_ax_exit_pupil['text'] = f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.5f}"
+        
+        self.depth_of_focus_val = self.grin_ax_exit_pupil_val/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val))
+        self.depth_of_focus['text'] = f"Depth of focus (DOF) [mm]: {self.depth_of_focus_val:.5f}"
         
     def index_profile_viewer(self, event, n1_, n0_, a0_):
         
@@ -424,7 +432,6 @@ class DynamicPlotApp:
         self.ax1.set_title('GRIN index profile')
         plt.tight_layout()
         self.canvas1.draw()
-        
     
     def grin_ax_viewer(self, event, n1_, n0_, a0_, z_, f_, nb_r0, nb_points):
     
@@ -435,7 +442,7 @@ class DynamicPlotApp:
         r0_ = np.linspace(2*a0_, -2*a0_, nb_r0)
         l1 = z_
         l2 = L_grin_lens + f_ + l1
-        l3 = exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)) + l2
+        l3 = self.depth_of_focus_val + l2
         z1 = np.linspace(0, l1, int(nb_points/2))
         z2 = np.linspace(l1, l2, int(nb_points/4))
         z3 = np.linspace(l2, l3, int(nb_points/4))
@@ -539,13 +546,13 @@ class DynamicPlotApp:
         
         # Get cursor position
         z_cursor = self.z_slider.get() 
-        y_cursor = D2fit(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
+        y_cursor = Exit_D(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
         
         # Update the grin axicon setup values
         self.update_grin_ax_param(event, n1, n0, Dn, D, z_cursor)   
         
         z = np.linspace(0, self.max_z, 50)
-        y = D2fit(1E-07, n1, Dn, a0, z, self.f_gax_val)
+        y = Exit_D(1E-07, n1, Dn, a0, z, self.f_gax_val)
         
         self.ax.clear()
         self.ax.plot(z, y)
@@ -607,9 +614,6 @@ class DynamicPlotApp:
         except ValueError:
             pass
 
-
-
-
     # Function to update a single slider's range based on input box values
     def update_slider(self, slider, min_input, max_input):
         try:
@@ -621,7 +625,6 @@ class DynamicPlotApp:
             slider.config(from_=min_value, to=max_value)
         except ValueError:
             pass
-
 
 if __name__ == "__main__":
     root = tk.Tk()
