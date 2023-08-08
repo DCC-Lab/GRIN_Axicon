@@ -167,19 +167,22 @@ class DynamicPlotApp:
         self.create_widgets()
 
     def create_widgets(self):
-        dpi = root.winfo_fpixels('1i') # Found here: https://stackoverflow.com/questions/42961810/detect-dpi-scaling-factor-in-python-tkinter-application
-        screen_width_in_inches = root.winfo_screenwidth() / dpi
-        screen_height_in_inches = root.winfo_screenheight() / dpi
+        # dpi = root.winfo_fpixels('1i') # Found here: https://stackoverflow.com/questions/42961810/detect-dpi-scaling-factor-in-python-tkinter-application
+        # screen_width_in_inches = root.winfo_screenwidth() / dpi
+        # screen_height_in_inches = root.winfo_screenheight() / dpi
 
-        mpl.rcParams['axes.titlesize'] = 'x-small'
-        mpl.rcParams['axes.labelsize'] = 'x-small'
-        mpl.rcParams['xtick.labelsize'] = 'x-small'
-        mpl.rcParams['ytick.labelsize'] = 'x-small'
+        # mpl.rcParams['axes.titlesize'] = 'x-small'
+        # mpl.rcParams['axes.labelsize'] = 'x-small'
+        # mpl.rcParams['xtick.labelsize'] = 'x-small'
+        # mpl.rcParams['ytick.labelsize'] = 'x-small'
 
-        self.fig, self.ax = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15) )
-        self.fig1, self.ax1 = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15))
-        self.fig2, self.ax2 = plt.subplots(figsize=(screen_width_in_inches * 0.2, 0.5))
+        # self.fig, self.ax = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15) )
+        # self.fig1, self.ax1 = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15))
+        # self.fig2, self.ax2 = plt.subplots(figsize=(screen_width_in_inches * 0.2, 0.5))
 
+        self.fig, self.ax = plt.subplots(figsize=(6, 4))
+        self.fig1, self.ax1 = plt.subplots(figsize=(6, 4))
+        self.fig2, self.ax2 = plt.subplots(figsize=(8, 2))
 
         # Create a frame for the GRIN-axicon section
         self.grin_axicon_frame = tk.LabelFrame(self.root, text="GRIN-Axicon", font=self.titlefont)
