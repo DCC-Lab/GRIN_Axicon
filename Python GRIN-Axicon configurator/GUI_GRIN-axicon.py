@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib as mpl
+from PIL import ImageTk, Image
+
 
 # ===========================================================
 #                   GRIN-Axicon functions
@@ -188,7 +190,7 @@ class DynamicPlotApp:
         self.grin_axicon_frame = tk.LabelFrame(self.root, text="GRIN-Axicon", font=self.titlefont)
         self.grin_axicon_frame.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH, expand=True)
         
-        # Create athe GRIN-axicon configuration panel
+        # Create a GRIN-axicon configuration panel
         self.grin_ax_config_panel = tk.LabelFrame(self.grin_axicon_frame, text='Configuration panel', font=self.subtitlefont)
         self.grin_ax_config_panel.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=True)
         
@@ -204,6 +206,10 @@ class DynamicPlotApp:
         self.axicon_config_panel = tk.LabelFrame(self.axicon_frame, text="Configuration panel", font=self.subtitlefont)
         self.axicon_config_panel.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=True)
         
+        # Create axicon image panel
+        self.axicon_im_panel = tk.LabelFrame(self.axicon_frame, text="Axicon parameters", font=self.subtitlefont)
+        self.axicon_im_panel.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=True)
+
         # Create a frame inside the Axicon section for the axicon properties
         self.axicon_param_frame = tk.LabelFrame(self.axicon_frame, text="Axicon properties", font=self.subtitlefont)
         self.axicon_param_frame.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.BOTH, expand=True)
@@ -288,6 +294,31 @@ class DynamicPlotApp:
         self.beam_diam = tk.Entry(self.axicon_config_panel, font=self.font)
         self.beam_diam.insert(0, str(self.beam_diam_val))
         self.beam_diam.grid(row=2, column=1, padx=5, pady=5)
+
+        # Create axicon image in configuration panel
+        
+        scale_factor = 0.5
+        
+        original_width = 893
+        original_height = 515
+        
+        width = round(original_width * scale_factor)
+        height = round(original_height * scale_factor)
+        
+        # Load the image
+        img = Image.open("axicon_image.png")
+
+        # Resize the image if needed
+        img = img.resize((width, height), Image.LANCZOS)
+
+        # Create a Tkinter-compatible image
+        img_tk = ImageTk.PhotoImage(img)
+        # Create a label to display the image
+        self.image_label = tk.Label(self.axicon_im_panel, image=img_tk)
+        self.image_label.grid(row=3, column=1, padx=10, pady=10)
+        self.image_label.image = img_tk  # Keep a reference to prevent garbage collection
+                
+        
 
         # Create the axicon properties labels
         self.exitangle_ax = ttk.Label(self.axicon_param_frame, text=f"Exit angle: {self.exitangle_ax_val:.5f}", font=self.font)
