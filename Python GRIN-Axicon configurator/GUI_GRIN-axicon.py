@@ -263,7 +263,7 @@ class DynamicPlotApp:
         self.Dn_max_input.insert(0, str(self.max_Dn))
         self.Dn_max_input.grid(row=2, column=5, padx=5, pady=5)
 
-        self.z_label = ttk.Label(self.grin_ax_config_panel, text="z:", font=self.font)
+        self.z_label = ttk.Label(self.grin_ax_config_panel, text="L:", font=self.font)
         self.z_label.grid(row=3, column=0, padx=5, pady=5)
         self.z_slider = ttk.Scale(self.grin_ax_config_panel, from_ = self.min_z, to = self.max_z, length=300, orient=tk.HORIZONTAL, value=self.init_cursor_z)
         self.z_slider.grid(row=3, column=1, padx=5, pady=5)
@@ -435,7 +435,6 @@ class DynamicPlotApp:
     
     def grin_ax_viewer(self, event, n1_, n0_, a0_, z_, f_, nb_r0, nb_points):
     
-        T_grin = T(alpha(n1_, n0_, a0_))
         L_grin_lens = GRIN_focRing(1E-07, n1_, n0_, a0_, z_)
         exit_diam = self.grin_ax_exit_pupil_val
         
@@ -575,7 +574,7 @@ class DynamicPlotApp:
         # Update slider value labels
         self.n0_label.config(text=f"n0: {n0:.5f}")
         self.Dn_label.config(text=f"Dn: {Dn:.5f}")
-        self.z_label.config(text=f"z: {z_cursor:.5f}")
+        self.z_label.config(text=f"L: {z_cursor:.5f}")
         
         self.grin_ax_viewer(event, n1, n0, a0, z_cursor, f, 5, 50)
         self.index_profile_viewer(event, n1, n0, a0)
