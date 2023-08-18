@@ -1,10 +1,10 @@
 # GRIN_Axicon
-CODE V macro to model a GRIN-axicon and python scripts to fit the GRIN-axicon parameters to an existing axicon's parameters. Make sure to read the intership overview (```IntershipRport.pdf```)
+CODE V macro to model a GRIN-axicon and python scripts to fit the GRIN-axicon parameters to an existing axicon's parameters. Make sure to read the intership overview (```IntershipRport.pdf```) for further details about the GRIN-axicon.
 
 # **GRIN-axicon configurator setup**
 **Intallation process:**
 1. Install the ```GUI_GRIN-axicon.py``` file
-2. Run it with any python IDLE (like VS Code)
+2. Open the GRIN-axicon repo on any python IDLE (like VS Code)
 
 **Configuring a GRIN-axicon**
 1. When running the ```GUI_GRIN-axicon.py``` file, an interface should pop up, start by entering the axicon parameters in the Axicon configuration pannel.
