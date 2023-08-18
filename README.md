@@ -4,7 +4,7 @@ CODE V macro to model a GRIN-axicon and python scripts to fit the GRIN-axicon pa
 # **GRIN-axicon configurator setup**
 **Intallation process:**
 1. Install the ```GUI_GRIN-axicon.py``` file
-2. Open the GRIN-axicon repo on any python IDLE (like VS Code)
+2. Open the Python GRIN-Axicon configurator folder in the GRIN-axicon repo on any python IDLE (like VS Code)
 
 **Configuring a GRIN-axicon**
 1. When running the ```GUI_GRIN-axicon.py``` file, an interface should pop up, start by entering the axicon parameters in the Axicon configuration pannel.
