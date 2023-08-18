@@ -11,7 +11,7 @@ CODE V macro to model a GRIN-axicon and python scripts to fit the GRIN-axicon pa
 
 **Creating a GRIN**
 1. Open CODE V
-2. Run the GRIN-axicon_macro.seq either by a menu shortcut, the Macro Manager or by typing '''in GRIN-axicon_macro'''
+2. Run the GRIN-axicon_macro.seq either by a menu shortcut, the Macro Manager or by typing ```in GRIN-axicon_macro```
 3. Type the desired grin glass name
 2. Select the desired mode (theo vs exp:  when using the experimental mode, make sure that the file is in the working directory)
 4. Run macro with the desired parameters
