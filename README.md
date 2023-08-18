@@ -26,6 +26,6 @@ CODE V macro to model a GRIN-axicon and python scripts to fit the GRIN-axicon pa
 4. Run macro with the desired parameters
 
 Also, when using the experimental mode, make sure to format the refractive index profile correctly using this Python progam (if you are not in the DCC Lab team, copy the code to your own Google Collab file and change the file names):
-[Google Collab]([https://github.com](https://colab.research.google.com/drive/1K1_1UN_SLIXMgnj2FgyKjVjrnuUiGcWT?usp=sharing)
+[Google Collab]([https://github.com](https://colab.research.google.com/drive/1K1_1UN_SLIXMgnj2FgyKjVjrnuUiGcWT?usp=sharing))
 
 
