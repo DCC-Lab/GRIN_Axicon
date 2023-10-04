@@ -137,9 +137,11 @@ class DynamicPlotApp:
         self.root = root
         self.root.title("GRIN-Axicon configurator")
 
-        self.font = font.Font(family='Times New Roman', size=14)
-        self.subtitlefont = font.Font(family='Times New Roman', size=18, weight='normal', underline=True)
-        self.titlefont = font.Font(family='Times New Roman', size=20, weight='bold')
+        self.fontname = 'Helvetica'
+
+        self.font = font.Font(family=self.fontname, size=14)
+        self.subtitlefont = font.Font(family=self.fontname, size=18, weight='normal', underline=True)
+        self.titlefont = font.Font(family=self.fontname, size=20, weight='bold')
         
         self.alpha_ax_val = 2.5
         self.n_ax_val = 1.5168
@@ -184,9 +186,7 @@ class DynamicPlotApp:
         # self.fig1, self.ax1 = plt.subplots(figsize=(screen_width_in_inches * 0.1, screen_height_in_inches * 0.15))
         # self.fig2, self.ax2 = plt.subplots(figsize=(screen_width_in_inches * 0.2, 0.5))
 
-        self.fig, self.ax = plt.subplots(figsize=(6, 4))
-        self.fig1, self.ax1 = plt.subplots(figsize=(6, 4))
-        self.fig2, self.ax2 = plt.subplots(figsize=(8, 2))
+        self.fig, self.ax = plt.subplots(figsize=(10, 4))
 
         # Create a frame for the GRIN-axicon section
         self.grin_axicon_frame = tk.LabelFrame(self.root, text="GRIN-Axicon", font=self.titlefont)
@@ -208,25 +208,21 @@ class DynamicPlotApp:
         self.axicon_config_panel = tk.LabelFrame(self.axicon_frame, text="Configuration panel", font=self.subtitlefont)
         self.axicon_config_panel.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=True)
         
-        # Create axicon image panel
-        self.axicon_im_panel = tk.LabelFrame(self.axicon_frame, text="Axicon parameters", font=self.subtitlefont)
-        self.axicon_im_panel.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=True)
-
         # Create a frame inside the Axicon section for the axicon properties
         self.axicon_param_frame = tk.LabelFrame(self.axicon_frame, text="Axicon properties", font=self.subtitlefont)
         self.axicon_param_frame.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.BOTH, expand=True)
         
         # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
-        self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=3, padx=10, pady=20)
+        self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=6, padx=10, pady=20)
         
         # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        self.canvas1 = FigureCanvasTkAgg(self.fig1, master=self.grin_ax_config_panel)
-        self.canvas1.get_tk_widget().grid(row=0, column=3, columnspan=3, padx=10, pady=20)
+        # self.canvas1 = FigureCanvasTkAgg(self.fig1, master=self.grin_ax_config_panel)
+        # self.canvas1.get_tk_widget().grid(row=0, column=3, columnspan=3, padx=10, pady=20)
         
-        # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.grin_ax_param_frame)
-        self.canvas2.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=20)
+        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
+        # self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.grin_ax_param_frame)
+        # self.canvas2.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=20)
 
         # Create tkinter widgets for sliders in GRIN-axicon section
         self.n0_label = ttk.Label(self.grin_ax_config_panel, text="n0:", font=self.font)
@@ -280,22 +276,22 @@ class DynamicPlotApp:
 
         # Create input boxes in Axicon section
         self.alpha_ax = ttk.Label(self.axicon_config_panel, text=f"Alpha parameter [{chr(176)}]:", font=self.font)
-        self.alpha_ax.grid(row=0, column=0, padx=5, pady=5)
+        self.alpha_ax.grid(row=1, column=0, padx=5, pady=5)
         self.alpha_ax = tk.Entry(self.axicon_config_panel, font=self.font)
         self.alpha_ax.insert(0, str(self.alpha_ax_val))
-        self.alpha_ax.grid(row=0, column=1, padx=5, pady=5)
+        self.alpha_ax.grid(row=1, column=1, padx=5, pady=5)
 
         self.n_ax = ttk.Label(self.axicon_config_panel, text="Refractive index [-]:", font=self.font)
-        self.n_ax.grid(row=1, column=0, padx=5, pady=5)
+        self.n_ax.grid(row=2, column=0, padx=5, pady=5)
         self.n_ax = tk.Entry(self.axicon_config_panel, font=self.font)
         self.n_ax.insert(0, str(self.n_ax_val))
-        self.n_ax.grid(row=1, column=1, padx=5, pady=5)
+        self.n_ax.grid(row=2, column=1, padx=5, pady=5)
 
         self.beam_diam = ttk.Label(self.axicon_config_panel, text="Beam diameter [mm]:", font=self.font)
-        self.beam_diam.grid(row=2, column=0, padx=5, pady=5)
+        self.beam_diam.grid(row=3, column=0, padx=5, pady=5)
         self.beam_diam = tk.Entry(self.axicon_config_panel, font=self.font)
         self.beam_diam.insert(0, str(self.beam_diam_val))
-        self.beam_diam.grid(row=2, column=1, padx=5, pady=5)
+        self.beam_diam.grid(row=3, column=1, padx=5, pady=5)
 
         # Create axicon image in configuration panel
         
@@ -316,8 +312,8 @@ class DynamicPlotApp:
         # Create a Tkinter-compatible image
         img_tk = ImageTk.PhotoImage(img)
         # Create a label to display the image
-        self.image_label = tk.Label(self.axicon_im_panel, image=img_tk)
-        self.image_label.grid(row=3, column=1, padx=10, pady=10)
+        self.image_label = tk.Label(self.axicon_config_panel, image=img_tk)
+        self.image_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
         self.image_label.image = img_tk  # Keep a reference to prevent garbage collection
                 
         
@@ -451,7 +447,7 @@ class DynamicPlotApp:
         full_z.extend(z3)
         
         
-        self.ax2.clear()
+        self.ax.clear()
         ray_color = (0.18, 0.45, 0.71)
         
         for i in r0_:
@@ -473,8 +469,8 @@ class DynamicPlotApp:
                 r_z3 = r_lens_air(r2_, theta2_, (z_ + L_grin_lens + f_), z3)
                 beam_list.extend(r_z3)
             
-                self.ax2.plot(full_z, beam_list, color=ray_color)
-                self.ax2.plot(full_z, [ -x for x in beam_list], color=ray_color)
+                self.ax.plot(full_z, beam_list, color=ray_color)
+                self.ax.plot(full_z, [ -x for x in beam_list], color=ray_color)
             elif i == 0:
                 beam_list = []
                 
@@ -493,43 +489,43 @@ class DynamicPlotApp:
                 r_z3 = r_lens_air(r2_, theta2_, (z_ + L_grin_lens + f_), z3)
                 beam_list.extend(r_z3)
                 
-                self.ax2.plot(full_z, beam_list, color=ray_color)
-                self.ax2.plot(full_z, [ -x for x in beam_list], color=ray_color)
+                self.ax.plot(full_z, beam_list, color=ray_color)
+                self.ax.plot(full_z, [ -x for x in beam_list], color=ray_color)
             else:
                 break
-        self.ax2.set_xlabel('Axial position [mm]')
-        self.ax2.set_ylabel('Radial position [mm]')
-        self.ax2.set_title('GRIN-axicon setup scheme')
-        self.ax2.vlines(x = [0, z_, l2], ymin = [-2*a0_, -2*a0_, -exit_diam/2], ymax = [2*a0_, 2*a0_, exit_diam/2],
+        self.ax.set_xlabel('Axial position [mm]')
+        self.ax.set_ylabel('Radial position [mm]')
+        self.ax.set_title('GRIN-axicon setup scheme')
+        self.ax.vlines(x = [0, z_, l2], ymin = [-2*a0_, -2*a0_, -exit_diam/2], ymax = [2*a0_, 2*a0_, exit_diam/2],
            colors = 'black',
            label = 'vline_multiple - full height',
            linestyles='solid')
-        self.ax2.hlines([-2*a0_, 2*a0_], 0, z_,
+        self.ax.hlines([-2*a0_, 2*a0_], 0, z_,
            colors = 'black',
            label = 'vline_multiple - full height',
            linestyles='solid')
-        self.canvas2.draw()
+        self.canvas.draw()
     
-    def ax_viewer(self, event, nb_points, nb_r0, D):
+    # def ax_viewer(self, event, nb_points, nb_r0, D):
         
-        exitangle = self.exitangle_ax_val
-        alpha_param = self.alpha_ax_val
+    #     exitangle = self.exitangle_ax_val
+    #     alpha_param = self.alpha_ax_val
         
-        r0_ = np.linspace(D/2, -D/2, nb_r0)
-        z1 = np.linspace(0, exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)), 50)
+    #     r0_ = np.linspace(D/2, -D/2, nb_r0)
+    #     z1 = np.linspace(0, exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)), 50)
                          
-        exit_diam = self.grin_ax_exit_pupil_val
+    #     exit_diam = self.grin_ax_exit_pupil_val
         
         
-        self.ax2.set_xlabel('Axial position [mm]')
-        self.ax2.set_ylabel('Radial position [mm]')
-        self.ax2.set_title('GRIN-axicon setup scheme')
-        self.ax2.vlines(x = 0, ymin = -D/2, ymax = D/2,
-           colors = 'black',
-           label = 'vline_multiple - full height',
-           linestyles='solid')
+    #     self.ax2.set_xlabel('Axial position [mm]')
+    #     self.ax2.set_ylabel('Radial position [mm]')
+    #     self.ax2.set_title('GRIN-axicon setup scheme')
+    #     self.ax2.vlines(x = 0, ymin = -D/2, ymax = D/2,
+    #        colors = 'black',
+    #        label = 'vline_multiple - full height',
+    #        linestyles='solid')
 
-        self.canvas2.draw()
+    #     self.canvas2.draw()
     
     # Function to update the plot based on the slider values
     def update_plot(self, event):        
@@ -543,41 +539,42 @@ class DynamicPlotApp:
         # Update the z slider range    
         self.update_z_slider_range(event)    
         
-        # Get cursor position
+        # # Get cursor position
         z_cursor = self.z_slider.get() 
-        y_cursor = Exit_D(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
+        # y_cursor = Exit_D(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
         
         # Update the grin axicon setup values
         self.update_grin_ax_param(event, n1, n0, Dn, D, z_cursor)   
         
-        z = np.linspace(0, self.max_z, 50)
-        y = Exit_D(1E-07, n1, Dn, a0, z, self.f_gax_val)
-        
-        self.ax.clear()
-        self.ax.plot(z, y)
-        
-        self.ax.vlines(x = z_cursor, ymin = 0, ymax = y_cursor,
-           colors = 'black',
-           label = 'vline_multiple - full height',
-           linestyles='dashed')
-        
-        self.ax.hlines(y_cursor, 0, z_cursor,
-           colors = 'black',
-           label = 'vline_multiple - full height',
-           linestyles='dashed')
-        
-        self.ax.set_xlabel('GRIN length [mm]', fontsize="x-small")
-        self.ax.set_ylabel('Exit beam diameter [mm]', fontsize="x-small")
-        self.ax.set_title('GRIN exit beam diameter adjusting curve', fontsize="x-small")
-        self.canvas.draw()
-
         # Update slider value labels
-        self.n0_label.config(text=f"n0: {n0:.5f}")
-        self.Dn_label.config(text=f"Dn: {Dn:.5f}")
+        self.n0_label.config(text=f"n₀: {n0:.5f}")
+        self.Dn_label.config(text=f"Δn: {Dn:.5f}")
         self.z_label.config(text=f"L: {z_cursor:.5f}")
         
         self.grin_ax_viewer(event, n1, n0, a0, z_cursor, f, 5, 50)
-        self.index_profile_viewer(event, n1, n0, a0)
+        # self.index_profile_viewer(event, n1, n0, a0)
+        
+        
+        # z = np.linspace(0, self.max_z, 50)
+        # y = Exit_D(1E-07, n1, Dn, a0, z, self.f_gax_val)
+        
+        # self.ax.clear()
+        # self.ax.plot(z, y)
+        
+        # self.ax.vlines(x = z_cursor, ymin = 0, ymax = y_cursor,
+        #    colors = 'black',
+        #    label = 'vline_multiple - full height',
+        #    linestyles='dashed')
+        
+        # self.ax.hlines(y_cursor, 0, z_cursor,
+        #    colors = 'black',
+        #    label = 'vline_multiple - full height',
+        #    linestyles='dashed')
+        
+        # self.ax.set_xlabel('GRIN length [mm]', fontsize="x-small")
+        # self.ax.set_ylabel('Exit beam diameter [mm]', fontsize="x-small")
+        # self.ax.set_title('GRIN exit beam diameter adjusting curve', fontsize="x-small")
+        # self.canvas.draw()
 
     # Function to update the slider range based on input box values
     def update_slider_range(self, event):           
@@ -628,6 +625,16 @@ class DynamicPlotApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = DynamicPlotApp(root)
+    #Get the current screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    #Print the screen size
+    print("Screen width:", screen_width)
+    print("Screen height:", screen_height)
+    
+    root.geometry(f"{screen_width}x{screen_height}")
+    
     root.mainloop()
 
 
