@@ -139,6 +139,12 @@ class DynamicPlotApp:
 
         self.fontname = 'Helvetica'
 
+        # focal length init check box val
+        self.n0_CheckVar = tk.IntVar(value=1)
+        self.Dn_CheckVar = tk.IntVar(value=0)
+        self.z_CheckVar = tk.IntVar(value=1)
+        self.f_CheckVar = tk.IntVar(value=1)
+
         self.font = font.Font(family=self.fontname, size=14)
         self.subtitlefont = font.Font(family=self.fontname, size=18, weight='normal', underline=True)
         self.titlefont = font.Font(family=self.fontname, size=20, weight='bold')
@@ -149,25 +155,19 @@ class DynamicPlotApp:
         self.exitangle_ax_val = ax_ExitAngle(self.alpha_ax_val, self.n_ax_val)
         self.ax_k_constant_val = ax_k_constant(self.alpha_ax_val)      
         
-        self.min_n0 = 1
-        self.max_n0 = 2
-        self.init_cursor_n0 = (self.max_n0+self.min_n0)/2
+        # Default values
+        self.default_n0 = 1.45535
+        self.default_Dn = 0.01
+        self.default_n1 = self.default_n0 + self.default_Dn
+        self.default_Z = T(alpha(self.default_n1, self.default_n0, self.beam_diam_val/4))
         
-        self.min_Dn = 0.001
-        self.max_Dn = 0.05
-        self.init_cursor_Dn = (self.max_Dn+self.min_Dn)/2
+        self.n0 = self.default_n0
+        self.Dn = self.default_Dn
+        self.z = self.default_Z
+        self.f = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
         
-        self.init_val_n1 = self.init_cursor_n0 + self.init_cursor_Dn
-        
-        self.min_z = 0
-        self.max_z = T(alpha(self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4))
-        self.init_cursor_z = (self.max_z + self.min_z)/2 
-        
-        self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
-        self.grin_lens_distance_val = GRIN_focRing(1E-07, self.init_val_n1, self.init_cursor_n0, self.beam_diam_val/4, self.init_cursor_z) + self.f_gax_val
-        
-        self.grin_ax_exit_pupil_val = Exit_D(1E-07, self.init_val_n1, self.init_cursor_Dn, self.beam_diam_val/4, self.init_cursor_z, self.f_gax_val)
-        
+        self.grin_lens_distance_val = GRIN_focRing(1E-07, self.default_n1, self.default_n0, self.beam_diam_val/4, self.default_Z) + self.f
+        self.grin_ax_exit_pupil_val = Exit_D(1E-07, self.default_n1, self.default_Dn, self.beam_diam_val/4, self.default_Z, self.f)
         self.depth_of_focus_val = self.grin_ax_exit_pupil_val/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val))
         
         self.create_widgets()
@@ -216,63 +216,48 @@ class DynamicPlotApp:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.grin_ax_config_panel)
         self.canvas.get_tk_widget().grid(row=0, column=0, columnspan=6, padx=10, pady=20)
         
-        # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        # self.canvas1 = FigureCanvasTkAgg(self.fig1, master=self.grin_ax_config_panel)
-        # self.canvas1.get_tk_widget().grid(row=0, column=3, columnspan=3, padx=10, pady=20)
-        
-        # # Create a matplotlib canvas to display the plot inside the GRIN-axicon section
-        # self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.grin_ax_param_frame)
-        # self.canvas2.get_tk_widget().grid(row=2, column=0, columnspan=6, padx=10, pady=20)
-
-        # Create tkinter widgets for sliders in GRIN-axicon section
         self.n0_label = ttk.Label(self.grin_ax_config_panel, text="n0:", font=self.font)
         self.n0_label.grid(row=1, column=0, padx=5, pady=5)
-        self.n0_slider = ttk.Scale(self.grin_ax_config_panel, from_= self.min_n0, to = self.max_n0, length=300, orient=tk.HORIZONTAL, value=self.init_cursor_n0)
-        self.n0_slider.grid(row=1, column=1, padx=5, pady=5)
-
-        self.n0_min_input_label = ttk.Label(self.grin_ax_config_panel, text="Min:", font=self.font)
-        self.n0_min_input_label.grid(row=1, column=2, padx=5, pady=5)
-        self.n0_min_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
-        self.n0_min_input.insert(0, str(self.min_n0))
-        self.n0_min_input.grid(row=1, column=3, padx=5, pady=5)
-
-        self.n0_max_input_label = ttk.Label(self.grin_ax_config_panel, text="Max:", font=self.font)
-        self.n0_max_input_label.grid(row=1, column=4, padx=5, pady=5)
-        self.n0_max_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
-        self.n0_max_input.insert(0, str(self.max_n0))
-        self.n0_max_input.grid(row=1, column=5, padx=5, pady=5)
+        
+        self.n0_label2 = ttk.Label(self.grin_ax_config_panel, text=f"{self.default_n0:.4f}", font=self.font)
+        self.n0_label2.grid(row=1, column=1, padx=5, pady=5)
+        
+        self.n0_check_box = ttk.Checkbutton(self.grin_ax_config_panel, text='default', variable=self.n0_CheckVar, command=self.replace_n0)
+        self.n0_check_box.grid(row=1, column=2, padx=5, pady=5, sticky='W')
 
         self.Dn_label = ttk.Label(self.grin_ax_config_panel, text="Dn:", font=self.font)
         self.Dn_label.grid(row=2, column=0, padx=5, pady=5)
-        self.Dn_slider = ttk.Scale(self.grin_ax_config_panel, from_ = self.min_Dn, to = self.max_Dn, length=300, orient=tk.HORIZONTAL, value=self.init_cursor_Dn)
-        self.Dn_slider.grid(row=2, column=1, padx=5, pady=5)
-
-        self.Dn_min_input_label = ttk.Label(self.grin_ax_config_panel, text="Min:", font=self.font)
-        self.Dn_min_input_label.grid(row=2, column=2, padx=5, pady=5)
-        self.Dn_min_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
-        self.Dn_min_input.insert(0, str(self.min_Dn))
-        self.Dn_min_input.grid(row=2, column=3, padx=5, pady=5)
-
-        self.Dn_max_input_label = ttk.Label(self.grin_ax_config_panel, text="Max:", font=self.font)
-        self.Dn_max_input_label.grid(row=2, column=4, padx=5, pady=5)
-        self.Dn_max_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
-        self.Dn_max_input.insert(0, str(self.max_Dn))
-        self.Dn_max_input.grid(row=2, column=5, padx=5, pady=5)
+        
+        self.Dn_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
+        self.Dn_input.insert(0, f"{self.default_Dn:.4f}")
+        self.Dn_input.grid(row=2, column=1, padx=5, pady=5)
+        self.Dn_input.bind('<Return>', self.update_values)
+        
+        self.Dn_check_box = ttk.Checkbutton(self.grin_ax_config_panel, text='auto solve', variable=self.Dn_CheckVar)
+        self.Dn_check_box.grid(row=2, column=2, padx=5, pady=5, sticky='W')
 
         self.z_label = ttk.Label(self.grin_ax_config_panel, text="L:", font=self.font)
         self.z_label.grid(row=3, column=0, padx=5, pady=5)
-        self.z_slider = ttk.Scale(self.grin_ax_config_panel, from_ = self.min_z, to = self.max_z, length=300, orient=tk.HORIZONTAL, value=self.init_cursor_z)
-        self.z_slider.grid(row=3, column=1, padx=5, pady=5)
+        
+        self.z_check_box = ttk.Checkbutton(self.grin_ax_config_panel, text='auto pitch', variable=self.z_CheckVar,  command=self.replace_z)
+        self.z_check_box.grid(row=3, column=2, padx=5, pady=5, sticky='W')
+        
+        self.z_label2 = ttk.Label(self.grin_ax_config_panel, text=f"{self.default_Z:.4f}", font=self.font)
+        self.z_label2.grid(row=3, column=1, padx=5, pady=5)
+        
+        
+        
+        # Focal length input label, input box and check box
+        self.f_input_label = ttk.Label(self.grin_ax_config_panel, text='f:', font=self.font)
+        self.f_input_label.grid(row=4, column=0, padx=5, pady=5)
+        self.f_input_label2 = ttk.Label(self.grin_ax_config_panel, text=f'{self.f:.4f}', font=self.font)
+        self.f_input_label2.grid(row=4, column=1, padx=5, pady=5)
 
-        self.z_min_input_label = ttk.Label(self.grin_ax_config_panel, text="Min:", font=self.font)
-        self.z_min_input_label.grid(row=3, column=2, padx=5, pady=5)
-        self.z_min_value_label = ttk.Label(self.grin_ax_config_panel, text=str(self.min_z), font=self.font)
-        self.z_min_value_label.grid(row=3, column=3, padx=5, pady=5)
+        self.f_check_box = ttk.Checkbutton(self.grin_ax_config_panel, text='auto', variable=self.f_CheckVar, command=self.replace_f)
+        self.f_check_box.grid(row=4, column=2, padx=5, pady=5, sticky='W')
 
-        self.z_max_input_label = ttk.Label(self.grin_ax_config_panel, text="Max:", font=self.font)
-        self.z_max_input_label.grid(row=3, column=4, padx=5, pady=5)
-        self.z_max_value_label = ttk.Label(self.grin_ax_config_panel, text=str(self.max_z), font=self.font)
-        self.z_max_value_label.grid(row=3, column=5, padx=5, pady=5)
+        
+        
 
         # Create input boxes in Axicon section
         self.alpha_ax = ttk.Label(self.axicon_config_panel, text=f"Alpha parameter [{chr(176)}]:", font=self.font)
@@ -280,6 +265,7 @@ class DynamicPlotApp:
         self.alpha_ax = tk.Entry(self.axicon_config_panel, font=self.font)
         self.alpha_ax.insert(0, str(self.alpha_ax_val))
         self.alpha_ax.grid(row=1, column=1, padx=5, pady=5)
+        
 
         self.n_ax = ttk.Label(self.axicon_config_panel, text="Refractive index [-]:", font=self.font)
         self.n_ax.grid(row=2, column=0, padx=5, pady=5)
@@ -294,9 +280,7 @@ class DynamicPlotApp:
         self.beam_diam.grid(row=3, column=1, padx=5, pady=5)
 
         # Create axicon image in configuration panel
-        
         scale_factor = 0.5
-        
         original_width = 893
         original_height = 515
         
@@ -319,115 +303,204 @@ class DynamicPlotApp:
         
 
         # Create the axicon properties labels
-        self.exitangle_ax = ttk.Label(self.axicon_param_frame, text=f"Exit angle (Beta): {self.exitangle_ax_val:.5f}", font=self.font)
+        self.exitangle_ax = ttk.Label(self.axicon_param_frame, text=f"Exit angle (Beta): {self.exitangle_ax_val:.4f}", font=self.font)
         self.exitangle_ax.grid(row=0, column=0, padx=5, pady=5)
 
-        self.beam_diam_ax = ttk.Label(self.axicon_param_frame, text=f"Beam diameter: {self.beam_diam_val:.5f}", font=self.font)
+        self.beam_diam_ax = ttk.Label(self.axicon_param_frame, text=f"Beam diameter: {self.beam_diam_val:.4f}", font=self.font)
         self.beam_diam_ax.grid(row=1, column=0, padx=5, pady=5)
         
-        self.ax_k_cnt = ttk.Label(self.axicon_param_frame, text=f"K constant: {self.ax_k_constant_val:.5f}", font=self.font)
+        self.ax_k_cnt = ttk.Label(self.axicon_param_frame, text=f"K constant: {self.ax_k_constant_val:.4f}", font=self.font)
         self.ax_k_cnt.grid(row=2, column=0, padx=5, pady=5)
         
         # Create the grin axicon properties labels
-        self.exitangle_grin_ax = ttk.Label(self.grin_ax_param_frame, text=f"n1: {self.n0_slider.get()+self.Dn_slider.get():.5f}", font=self.font)
+        self.exitangle_grin_ax = ttk.Label(self.grin_ax_param_frame, text=f"n1: {self.default_n1:.4f}", font=self.font)
         self.exitangle_grin_ax.grid(row=0, column=0, padx=5, pady=5)
         
-        self.n0_grin_ax = ttk.Label(self.grin_ax_param_frame, text=f"n0: {self.n0_slider.get():.5f}", font=self.font)
+        self.n0_grin_ax = ttk.Label(self.grin_ax_param_frame, text=f"n0: {self.default_n0:.4f}", font=self.font)
         self.n0_grin_ax.grid(row=0, column=1, padx=5, pady=5)
         
-        self.grin_length = ttk.Label(self.grin_ax_param_frame, text=f"GRIN length [mm]: {self.z_slider.get():.5f}", font=self.font)
+        self.grin_length = ttk.Label(self.grin_ax_param_frame, text=f"GRIN length [mm]: {self.default_Z:.4f}", font=self.font)
         self.grin_length.grid(row=0, column=2, padx=5, pady=5)
         
-        self.lens_focal = ttk.Label(self.grin_ax_param_frame, text=f"Lens' focal distance [mm]: {self.f_gax_val:.5f}", font=self.font)
+        self.lens_focal = ttk.Label(self.grin_ax_param_frame, text=f"Lens' focal distance [mm]: {self.f:.4f}", font=self.font)
         self.lens_focal.grid(row=0, column=3, padx=5, pady=5)
         
-        self.grin_ax_entrance_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Input beam diameter [mm]: {self.beam_diam_val:.5f}", font=self.font)
+        self.grin_ax_entrance_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Input beam diameter [mm]: {self.beam_diam_val:.4f}", font=self.font)
         self.grin_ax_entrance_pupil.grid(row=1, column=0, padx=5, pady=5)
         
-        self.grin_ax_exit_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.5f}", font=self.font)
+        self.grin_ax_exit_pupil = ttk.Label(self.grin_ax_param_frame, text=f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.4f}", font=self.font)
         self.grin_ax_exit_pupil.grid(row=1, column=1, padx=5, pady=5)
         
-        self.grin_lens_distance = ttk.Label(self.grin_ax_param_frame, text=f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}", font=self.font)
+        self.grin_lens_distance = ttk.Label(self.grin_ax_param_frame, text=f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.4f}", font=self.font)
         self.grin_lens_distance.grid(row=1, column=2, padx=5, pady=5)
         
-        self.depth_of_focus = ttk.Label(self.grin_ax_param_frame, text=f"Depth of focus (DOF) [mm]: {self.grin_ax_exit_pupil_val:.5f}", font=self.font)
+        self.depth_of_focus = ttk.Label(self.grin_ax_param_frame, text=f"Depth of focus (DOF) [mm]: {self.grin_ax_exit_pupil_val:.4f}", font=self.font)
         self.depth_of_focus.grid(row=1, column=3, padx=5, pady=5)
-        
-        
-        
-        
 
-
-        # Bind the update_plot function to the "<B1-Motion>" event of the sliders in Axicon section
-        # which is when Button1 is pressed and mouse is moved.  <Motion> whenever mouse move, with or without button
-        self.n0_slider.bind("<B1-Motion>", self.update_plot)
-        self.Dn_slider.bind("<B1-Motion>", self.update_plot)
-        self.z_slider.bind("<B1-Motion>", self.update_plot)
-        
         self.alpha_ax.bind('<Return>', self.update_ax_param)
         self.n_ax.bind('<Return>', self.update_ax_param)
         self.beam_diam.bind('<Return>', self.update_ax_param)
-        
-        self.n0_min_input.bind("<Return>", self.update_slider_range)
-        self.n0_max_input.bind("<Return>", self.update_slider_range)
-        
-        self.Dn_min_input.bind("<Return>", self.update_slider_range)
-        self.Dn_max_input.bind("<Return>", self.update_slider_range)
-        
-        # Draw initial plot
-        self.update_plot(None)
 
+        # Draw initial plot
+        self.update_all(None)
+
+
+
+
+
+
+    def replace_n0(self):
+        status = self.n0_CheckVar.get()
+        
+        if status == 0:
+            self.n0_label2.destroy()
+            
+            self.n0_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
+            self.n0_input.insert(0, f"{self.default_n0:.4f}")
+            self.n0_input.grid(row=1, column=1, padx=5, pady=5)                
+            self.n0_input.bind('<Return>', self.update_values)
+            
+        else:
+            self.n0_input.destroy()
+            
+            self.n0_label2 = ttk.Label(self.grin_ax_config_panel, text=f"{self.default_n0:.4f}", font=self.font)
+            self.n0_label2.grid(row=1, column=1, padx=5, pady=5)
+            
+        self.update_all(None)
+        
+    def replace_z(self):
+        status = self.z_CheckVar.get()
+        
+        if status == 0:
+            self.z_label2.destroy()
+            
+            self.z_input = tk.Entry(self.grin_ax_config_panel, font=self.font)
+            self.z_input.insert(0, f"{self.z:.4f}")
+            self.z_input.grid(row=3, column=1, padx=5, pady=5)              
+            self.z_input.bind('<Return>', self.update_values)
+            
+        else:
+            self.z = T(alpha(self.n0 + self.Dn, self.n0, self.beam_diam_val/4))
+            
+            self.z_input.destroy()
+            
+            self.z_label2 = ttk.Label(self.grin_ax_config_panel, text=f'{self.z:.4f}', font=self.font)
+            self.z_label2.grid(row=3, column=1, padx=5, pady=5)
+            
+        self.update_all(None)
+        
+    def replace_f(self):
+        status = self.f_CheckVar.get()
+        
+        if status == 0:
+            self.f_input_label2.destroy()
+            
+            self.f_input = ttk.Entry(self.grin_ax_config_panel, font=self.font)
+            self.f_input.insert(0, f'{self.f:.4f}')
+            self.f_input.grid(row=4, column=1, padx=5, pady=5)              
+            self.f_input.bind('<Return>', self.update_values)
+            
+        else:
+            self.f = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
+            
+            self.f_input.destroy()
+            
+            self.f_input_label2 = ttk.Label(self.grin_ax_config_panel, text=f'{self.f:.4f}', font=self.font)
+            self.f_input_label2.grid(row=4, column=1, padx=5, pady=5)
+            
+        self.update_all(None)
+        
+        
+    def update_values(self, event):      
+        
+        if self.n0_CheckVar.get() == 0:
+            self.n0 = float(self.n0_input.get())
+        
+        if self.Dn_CheckVar.get() == 0:
+            self.Dn = float(self.Dn_input.get())         
+        
+        
+        
+        if self.f_CheckVar.get() == 0:
+            self.f = float(self.f_input.get())
+        
+        else:
+            self.f = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
+            self.f_input_label2['text'] = f'{self.f:.4f}'
+            
+        
+        
+        if self.z_CheckVar.get() == 0:
+            self.z = float(self.z_input.get())
+        
+        else:
+            self.z = T(alpha(self.n0 + self.Dn, self.n0, self.beam_diam_val/4))
+            self.z_label2['text'] = f'{self.z:.4f}'
+        
+        
+        self.update_all(None)
+       
+        
+        
+        
+        
     def update_ax_param(self, event):
         self.alpha_ax_val = float(self.alpha_ax.get())
         self.n_ax_val = float(self.n_ax.get())
         self.beam_diam_val = float(self.beam_diam.get())
         self.exitangle_ax_val = ax_ExitAngle(self.alpha_ax_val, self.n_ax_val)
-        self.f_gax_val = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
+        self.f = f_ga(self.exitangle_ax_val, self.beam_diam_val/4)
         
-        self.exitangle_ax['text'] = f"Exit angle (Beta) [{chr(176)}]: {self.exitangle_ax_val:.5f}"
-        self.beam_diam_ax['text'] = f"Beam diameter [mm]: {self.beam_diam_val:.5f}"
+        self.exitangle_ax['text'] = f"Exit angle (Beta) [{chr(176)}]: {self.exitangle_ax_val:.4f}"
+        self.beam_diam_ax['text'] = f"Beam diameter [mm]: {self.beam_diam_val:.4f}"
     
-        self.ax_k_cnt['text'] = f"K constant: {ax_k_constant(self.alpha_ax_val):.5f}"
+        self.ax_k_cnt['text'] = f"K constant: {ax_k_constant(self.alpha_ax_val):.4f}"
         
-        self.update_plot(event)
+        self.update_values(None)
+
+        
+        
+        
+        
         
     def update_grin_ax_param(self, event, n1, n0, Dn, D, z_cursor):
-        self.exitangle_grin_ax['text'] = f"n1: {self.n0_slider.get()+self.Dn_slider.get():.5f}"
-        self.n0_grin_ax['text'] = f"n0: {self.n0_slider.get():.5f}"
-        self.grin_length['text'] = f"GRIN length: {self.z_slider.get():.5f}"
-        self.lens_focal['text'] = f"Lens' focal distance [mm]: {self.f_gax_val:.5f}"
+
+        self.exitangle_grin_ax['text'] = f"n1: {self.default_n0+self.default_Dn:.4f}"
+        self.n0_grin_ax['text'] = f"n0: {self.default_n0:.4f}"
+        self.grin_length['text'] = f"GRIN length: {self.default_Z:.4f}"
+        self.lens_focal['text'] = f"Lens' focal distance [mm]: {self.f:.4f}"
         
-        self.grin_lens_distance_val = GRIN_focRing(1E-07, n1, n0, D/4, z_cursor) + self.f_gax_val
-        self.grin_lens_distance['text'] = f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.5f}"
+        self.grin_lens_distance_val = GRIN_focRing(1E-07, n1, n0, D/4, z_cursor) + self.f
+        self.grin_lens_distance['text'] = f"GRIN-lens distance [mm]: {self.grin_lens_distance_val:.4f}"
         
-        self.grin_ax_entrance_pupil['text'] = f"Input beam diameter [mm]: {self.beam_diam_val:.5f}"
-        self.grin_ax_exit_pupil_val = Exit_D(1E-07, n1, Dn, D/4, z_cursor, self.f_gax_val)
-        self.grin_ax_exit_pupil['text'] = f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.5f}"
+        self.grin_ax_entrance_pupil['text'] = f"Input beam diameter [mm]: {self.beam_diam_val:.4f}"
+        self.grin_ax_exit_pupil_val = Exit_D(1E-07, n1, Dn, D/4, z_cursor, self.f)
+        self.grin_ax_exit_pupil['text'] = f"Output beam diameter [mm]: {self.grin_ax_exit_pupil_val:.4f}"
         
         self.depth_of_focus_val = self.grin_ax_exit_pupil_val/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val))
-        self.depth_of_focus['text'] = f"Depth of focus (DOF) [mm]: {self.depth_of_focus_val:.5f}"
+        self.depth_of_focus['text'] = f"Depth of focus (DOF) [mm]: {self.depth_of_focus_val:.4f}"
         
-    def index_profile_viewer(self, event, n1_, n0_, a0_):
+    # def index_profile_viewer(self, event, n1_, n0_, a0_):
         
-        self.ax1.clear()
-        ray_color = (0.18, 0.45, 0.71)
-        alpha_ = alpha(n1_, n0_, a0_)
+    #     self.ax1.clear()
+    #     ray_color = (0.18, 0.45, 0.71)
+    #     alpha_ = alpha(n1_, n0_, a0_)
         
-        r = np.linspace(-2*a0_, 2*a0_, 50)
+    #     r = np.linspace(-2*a0_, 2*a0_, 50)
         
-        nr_ = []
-        for i in r:
-            if i >= 0:
-                nr_.append(n1_/np.cosh(alpha_*(i - a0_)))
-            else:
-                nr_.append(n1_/np.cosh(alpha_*(i + a0_)))
+    #     nr_ = []
+    #     for i in r:
+    #         if i >= 0:
+    #             nr_.append(n1_/np.cosh(alpha_*(i - a0_)))
+    #         else:
+    #             nr_.append(n1_/np.cosh(alpha_*(i + a0_)))
 
-        self.ax1.plot(r, nr_, color=ray_color)
-        self.ax1.set_ylabel('Refractive index $n$ [-]')
-        self.ax1.set_xlabel('Radial position $r$ [mm]')
-        self.ax1.set_title('GRIN index profile')
-        plt.tight_layout()
-        self.canvas1.draw()
+    #     self.ax1.plot(r, nr_, color=ray_color)
+    #     self.ax1.set_ylabel('Refractive index $n$ [-]')
+    #     self.ax1.set_xlabel('Radial position $r$ [mm]')
+    #     self.ax1.set_title('GRIN index profile')
+    #     plt.tight_layout()
+    #     self.canvas1.draw()
     
     def grin_ax_viewer(self, event, n1_, n0_, a0_, z_, f_, nb_r0, nb_points):
     
@@ -505,122 +578,25 @@ class DynamicPlotApp:
            label = 'vline_multiple - full height',
            linestyles='solid')
         self.canvas.draw()
-    
-    # def ax_viewer(self, event, nb_points, nb_r0, D):
         
-    #     exitangle = self.exitangle_ax_val
-    #     alpha_param = self.alpha_ax_val
-        
-    #     r0_ = np.linspace(D/2, -D/2, nb_r0)
-    #     z1 = np.linspace(0, exit_diam/(2*np.tan(-(np.pi/180)*self.exitangle_ax_val)), 50)
-                         
-    #     exit_diam = self.grin_ax_exit_pupil_val
-        
-        
-    #     self.ax2.set_xlabel('Axial position [mm]')
-    #     self.ax2.set_ylabel('Radial position [mm]')
-    #     self.ax2.set_title('GRIN-axicon setup scheme')
-    #     self.ax2.vlines(x = 0, ymin = -D/2, ymax = D/2,
-    #        colors = 'black',
-    #        label = 'vline_multiple - full height',
-    #        linestyles='solid')
-
-    #     self.canvas2.draw()
-    
-    # Function to update the plot based on the slider values
-    def update_plot(self, event):        
-        n0 = self.n0_slider.get()
-        Dn = self.Dn_slider.get()
+    def update_all(self, event):        
+        n0 = self.n0
+        Dn = self.Dn
         n1 = n0 + Dn
+        z = self.z
+        
         D = self.beam_diam_val
         a0 = D/4
-        f = self.f_gax_val
+        f = self.f
+        
                 
-        # Update the z slider range    
-        self.update_z_slider_range(event)    
-        
-        # # Get cursor position
-        z_cursor = self.z_slider.get() 
-        # y_cursor = Exit_D(1E-07, n1, Dn, a0, z_cursor, self.f_gax_val)
-        
         # Update the grin axicon setup values
-        self.update_grin_ax_param(event, n1, n0, Dn, D, z_cursor)   
+        self.update_grin_ax_param(event, n1, n0, Dn, D, self.z)   
         
-        # Update slider value labels
-        self.n0_label.config(text=f"n₀: {n0:.5f}")
-        self.Dn_label.config(text=f"Δn: {Dn:.5f}")
-        self.z_label.config(text=f"L: {z_cursor:.5f}")
+        # Update plot
+        self.grin_ax_viewer(self, n1, n0, a0, z, f, 7, 200)
         
-        self.grin_ax_viewer(event, n1, n0, a0, z_cursor, f, 5, 50)
-        # self.index_profile_viewer(event, n1, n0, a0)
-        
-        
-        # z = np.linspace(0, self.max_z, 50)
-        # y = Exit_D(1E-07, n1, Dn, a0, z, self.f_gax_val)
-        
-        # self.ax.clear()
-        # self.ax.plot(z, y)
-        
-        # self.ax.vlines(x = z_cursor, ymin = 0, ymax = y_cursor,
-        #    colors = 'black',
-        #    label = 'vline_multiple - full height',
-        #    linestyles='dashed')
-        
-        # self.ax.hlines(y_cursor, 0, z_cursor,
-        #    colors = 'black',
-        #    label = 'vline_multiple - full height',
-        #    linestyles='dashed')
-        
-        # self.ax.set_xlabel('GRIN length [mm]', fontsize="x-small")
-        # self.ax.set_ylabel('Exit beam diameter [mm]', fontsize="x-small")
-        # self.ax.set_title('GRIN exit beam diameter adjusting curve', fontsize="x-small")
-        # self.canvas.draw()
 
-    # Function to update the slider range based on input box values
-    def update_slider_range(self, event):           
-                
-        self.min_n0 = float(self.n0_min_input.get())
-        self.max_n0 = float(self.n0_max_input.get())
-        
-        self.min_Dn = float(self.Dn_min_input.get())
-        self.max_Dn = float(self.Dn_max_input.get())
-        
-        self.update_slider(self.n0_slider, self.n0_min_input, self.n0_max_input)
-        self.update_slider(self.Dn_slider, self.Dn_min_input, self.Dn_max_input)
-        
-        self.update_plot(event)
-
-    # Function to update the z slider's range based on the n0, Dn and Beam Diameter
-    def update_z_slider_range(self, event):
-        n0 = self.n0_slider.get()
-        Dn = self.Dn_slider.get()
-        n1 = n0 + Dn
-        D = self.beam_diam_val
-        
-        self.max_z = T(alpha(n1, n0, D/4))
-        self.z_max_value_label['text'] = str(self.max_z)
-        
-        try:
-            if self.min_z >= self.max_z:
-                raise ValueError
-            self.z_slider.config(from_=self.min_z, to=self.max_z)
-            
-            if self.z_slider['value'] > self.max_z:
-                self.z_slider['value'] = self.max_z
-        except ValueError:
-            pass
-
-    # Function to update a single slider's range based on input box values
-    def update_slider(self, slider, min_input, max_input):
-        try:
-            min_value = float(min_input.get())
-            max_value = float(max_input.get())
-
-            if min_value >= max_value:
-                raise ValueError
-            slider.config(from_=min_value, to=max_value)
-        except ValueError:
-            pass
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -638,3 +614,4 @@ if __name__ == "__main__":
     root.mainloop()
 
 
+# add focal rinf distance from GRIN
